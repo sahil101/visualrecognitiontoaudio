@@ -19,7 +19,7 @@ class _HomeState extends State<Home> {
   // this function loads the model
   loadTfModel() async {
     await Tflite.loadModel(
-      model: "assets/ssd_mobilenet.tflite",
+      model: "assets/yolov3-1.tflite",
       labels: "assets/labels.txt",
     );
   }
