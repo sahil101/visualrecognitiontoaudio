@@ -1,7 +1,7 @@
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
-import 'package:visualrecogntiontoaudio/screens/home.dart';
 import 'package:visualrecogntiontoaudio/screens/live_screen.dart';
+import 'package:visualrecogntiontoaudio/screens/splash_screen.dart';
 
 List<CameraDescription> cameras;
 
@@ -38,34 +38,53 @@ class _MyAppState extends State<MyApp> {
       body: Container(
         child: Center(
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: <Widget>[
-              ButtonTheme(
-                minWidth: 170,
-                child: ElevatedButton(
-                  child: Text("Detect in Image"),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => Home(),
+              Expanded(
+                child: Container(
+                  color: Colors.blue,
+                  child: GestureDetector(
+                    child: Center(
+                      child: Text(
+                        "Detect in Image",
+                        style: TextStyle(
+                          fontSize: 45,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    );
-                  },
+                    ),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => MySplash(),
+                        ),
+                      );
+                    },
+                  ),
                 ),
               ),
-              ButtonTheme(
-                minWidth: 160,
-                child: ElevatedButton(
-                  child: Text("Real Time Detection"),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => LiveFeed(cameras),
+              Expanded(
+                child: Container(
+                  color: Colors.purple,
+                  child: GestureDetector(
+                    child: Center(
+                        child: Text(
+                      "Real Time Detection",
+                      style: TextStyle(
+                        fontSize: 43,
+                        fontWeight: FontWeight.bold,
                       ),
-                    );
-                  },
+                    )),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => LiveFeed(cameras),
+                        ),
+                      );
+                    },
+                  ),
                 ),
               ),
             ],
