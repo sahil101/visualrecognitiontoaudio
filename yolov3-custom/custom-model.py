@@ -11,7 +11,7 @@ import os
 import subprocess
 
 
-# In[5]:
+# In[3]:
 
 
 LABELS = open("coco.names").read().strip().split("\n")
@@ -25,14 +25,14 @@ ln = net.getLayerNames()
 ln = [ln[i[0] - 1] for i in net.getUnconnectedOutLayers()]
 
 
-# In[6]:
+# In[4]:
 
 
 import imageio
 from PIL import Image
 
 
-# In[29]:
+# In[11]:
 
 
 def take_photo(imagepath):
@@ -81,7 +81,8 @@ def take_photo(imagepath):
 
 
         idxs = cv2.dnn.NMSBoxes(boxes, confidences, 0.5, 0.3)
-        texts = []
+        texts = {}
+        l = 0
 
 #         print(confidences)
         if len(idxs) > 0:
@@ -104,15 +105,18 @@ def take_photo(imagepath):
                 else:
                     H_pos = "bottom "
 
-                texts.append('H_pos + W_pos + {0} + {1} + {2} + {3} + {4}'.format(LABELS[classIDs[i]],confidences[i], centerX, centerY, boxes[i]))
+#                 texts.append('H_pos + W_pos + {0} + {1} + {2} + {3} + {4}'.format(LABELS[classIDs[i]],confidences[i], centerX, centerY, boxes[i]))
+                res = {'height': H_pos, 'width': W_pos, 'label': LABELS[classIDs[i]], 'confidence_score': confidences[i], 'centerX': centerX, 'centerY': centerY, 'box_parameter': boxes[i]}
+                texts[l] = res
+                l = l + 1
 
     return (texts)
 
 
-# In[30]:
+# In[12]:
 
 
-
+take_photo("test.jpg")
 
 
 # In[ ]:

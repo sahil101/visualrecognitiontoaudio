@@ -47,3 +47,4 @@ app.*.map.json
 
 
 /yolov3-custom/yolov3.weights
+/yolov3-custom/.ipynb_checkpoints/
