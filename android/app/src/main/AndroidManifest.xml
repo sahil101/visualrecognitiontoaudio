@@ -1,7 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.visualrecogntiontoaudio">
+    package="com.example.visualrecogntiontoaudio"> <uses-permission android:name="android.permission.INTERNET" />
    <application
         android:label="visualrecogntiontoaudio"
+        android:usesCleartextTraffic="true"
         android:icon="@mipmap/ic_launcher">
         <activity
             android:name=".MainActivity"

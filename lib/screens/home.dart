@@ -1,7 +1,8 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:tflite/tflite.dart';
+import 'package:visualrecogntiontoaudio/helper/tts.dart';
+import '/helper/api.dart';
 
 class Home extends StatefulWidget {
   @override
@@ -10,30 +11,15 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   File _image;
-  List _recognitions;
+  Map<String, dynamic> _recognitions;
   bool _busy = false;
   double _imageWidth, _imageHeight;
-
   final picker = ImagePicker();
-
-  // this function loads the model
-  loadTfModel() async {
-    await Tflite.loadModel(
-      model: "assets/yolov3-1.tflite",
-      labels: "assets/labels.txt",
-    );
-  }
+  CallApi _callapi = new CallApi();
 
   // this function detects the objects on the image
   detectObject(File image) async {
-    var recognitions = await Tflite.detectObjectOnImage(
-        path: image.path, // required
-        imageMean: 127.5,
-        imageStd: 127.5,
-        threshold: 0.4, // defaults to 0.1
-        numResultsPerClass: 10, // defaults to 5
-        asynch: true // defaults to true
-        );
+    Map<String, dynamic> results = await _callapi.getresults(image);
     FileImage(image)
         .resolve(ImageConfiguration())
         .addListener((ImageStreamListener((ImageInfo info, bool _) {
@@ -43,22 +29,22 @@ class _HomeState extends State<Home> {
           });
         })));
     setState(() {
-      _recognitions = recognitions;
+      _recognitions = results;
     });
-    print(_recognitions);
+    String texttospeak = "";
+    TTS tts = new TTS();
+    for (var i = 0; i < results.length; i++) {
+      String index = i.toString();
+      texttospeak = texttospeak +
+          "Object ${results[index]['label']} is at ${results[index]['height']} ${results[index]['width']} ";
+    }
+    await tts.tts(texttospeak);
   }
 
   @override
   void initState() {
     super.initState();
-    _busy = true;
-    loadTfModel().then((val) {
-      {
-        setState(() {
-          _busy = false;
-        });
-      }
-    });
+    _busy = false;
   }
 
   // display the bounding boxes over the detected objects
@@ -68,17 +54,25 @@ class _HomeState extends State<Home> {
 
     double factorX = screen.width;
     double factorY = _imageHeight / _imageHeight * screen.width;
-
     Color blue = Colors.blue;
-
-    return _recognitions.map((re) {
-      return Container(
+    List<Container> containers = [];
+    for (var i = 0; i < _recognitions.length; i++) {
+      var index = i.toString();
+      double left =
+          (double.parse(_recognitions[index]["centerX"]) / _imageWidth);
+      double top =
+          (double.parse(_recognitions[index]["centerY"]) / _imageHeight);
+      double width = (double.parse(_recognitions[index]["W"]) / _imageWidth);
+      double height = (double.parse(_recognitions[index]["H"]) / _imageHeight);
+      print(left);
+      containers.add(Container(
         child: Positioned(
-            left: re["rect"]["x"] * factorX,
-            top: re["rect"]["y"] * factorY,
-            width: re["rect"]["w"] * factorX,
-            height: re["rect"]["h"] * factorY,
-            child: ((re["confidenceInClass"] > 0.50))
+            left: left * factorX,
+            top: top * factorY,
+            width: width * factorX,
+            height: height * factorY,
+            child: ((double.parse(_recognitions[index]["confidence_score"]) >
+                    0.50))
                 ? Container(
                     decoration: BoxDecoration(
                         border: Border.all(
@@ -86,7 +80,7 @@ class _HomeState extends State<Home> {
                       width: 3,
                     )),
                     child: Text(
-                      "${re["detectedClass"]} ${(re["confidenceInClass"] * 100).toStringAsFixed(0)}%",
+                      "${_recognitions[index]["label"]} ${(double.parse(_recognitions[index]["confidence_score"]) * 100).toStringAsFixed(0)}%",
                       style: TextStyle(
                         background: Paint()..color = blue,
                         color: Colors.white,
@@ -95,8 +89,9 @@ class _HomeState extends State<Home> {
                     ),
                   )
                 : Container()),
-      );
-    }).toList();
+      ));
+    }
+    return containers;
   }
 
   @override

@@ -1,17 +1,8 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[1]:
-
-
 import numpy as np
 import time
 import cv2
 import os
 import subprocess
-
-
-# In[3]:
 
 
 LABELS = open("coco.names").read().strip().split("\n")
@@ -25,14 +16,11 @@ ln = net.getLayerNames()
 ln = [ln[i[0] - 1] for i in net.getUnconnectedOutLayers()]
 
 
-# In[4]:
-
 
 import imageio
 from PIL import Image
 
 
-# In[11]:
 
 
 def take_photo(imagepath):
@@ -63,7 +51,7 @@ def take_photo(imagepath):
             classID = np.argmax(scores)
             confidence = scores[classID]
 
-       
+
             if confidence > 0.5:
 
                         box = detection[0:4] * np.array([W, H, W, H])
@@ -89,7 +77,7 @@ def take_photo(imagepath):
 
             for i in idxs.flatten():
 
-                
+
                 centerX, centerY = centers[i][0], centers[i][1]
                 if centerX <= W/3:
                     W_pos = "left "
@@ -99,27 +87,16 @@ def take_photo(imagepath):
                     W_pos = "right "
 
                 if centerY <= H/3:
-                    H_pos = "top" 
+                    H_pos = "top"
                 elif centerY <= (H/3 * 2):
                     H_pos = "mid "
                 else:
                     H_pos = "bottom "
-
-#                 texts.append('H_pos + W_pos + {0} + {1} + {2} + {3} + {4}'.format(LABELS[classIDs[i]],confidences[i], centerX, centerY, boxes[i]))
                 res = {'height': H_pos, 'width': W_pos, 'label': LABELS[classIDs[i]], 'confidence_score': confidences[i], 'centerX': centerX, 'centerY': centerY, 'box_parameter': boxes[i]}
                 texts[l] = res
                 l = l + 1
 
     return (texts)
-
-
-# In[12]:
-
-
-take_photo("test.jpg")
-
-
-# In[ ]:
 
 
 
