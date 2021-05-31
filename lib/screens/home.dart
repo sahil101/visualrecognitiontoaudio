@@ -12,12 +12,25 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
   File _image;
   Map<String, dynamic> _recognitions;
-  bool _busy = false;
+  var _busy = 0;
   double _imageWidth, _imageHeight;
   final picker = ImagePicker();
-  CallApi _callapi = new CallApi();
-
+  CallApi _callapi;
+  String _instructions;
+  TTS _tts;
+  String texttospeak = "No Object in front";
   // this function detects the objects on the image
+  void listentoobjects() {
+    _tts.tts(texttospeak);
+  }
+
+  void detectinimage() async {
+    setState(() {
+      _busy = 0;
+    });
+    _tts.tts("Click an image by Tapping on the screen");
+  }
+
   detectObject(File image) async {
     Map<String, dynamic> results = await _callapi.getresults(image);
     FileImage(image)
@@ -30,21 +43,29 @@ class _HomeState extends State<Home> {
         })));
     setState(() {
       _recognitions = results;
+      _busy = 2;
     });
-    String texttospeak = "";
-    TTS tts = new TTS();
-    for (var i = 0; i < results.length; i++) {
-      String index = i.toString();
-      texttospeak = texttospeak +
-          "Object ${results[index]['label']} is at ${results[index]['height']} ${results[index]['width']} ";
+    print(_recognitions);
+    if (_recognitions.length > 0) {
+      texttospeak = "";
+      for (var i = 0; i < results.length; i++) {
+        String index = i.toString();
+        texttospeak = texttospeak +
+            "Object ${results[index]['label']} is at ${results[index]['height']} ${results[index]['width']} ";
+      }
     }
-    await tts.tts(texttospeak);
+    _tts.tts(
+        "'Tap to Listen' and 'Double Tap to Again Click Image', If you tap Once then after Listening Choose again ");
   }
 
   @override
   void initState() {
     super.initState();
-    _busy = false;
+    _busy = 0;
+    _tts = new TTS();
+    _callapi = new CallApi();
+    _instructions = "Click an image by Tapping on the screen";
+    _tts.tts(_instructions);
   }
 
   // display the bounding boxes over the detected objects
@@ -115,12 +136,11 @@ class _HomeState extends State<Home> {
           Container(child: Image.file(_image)),
     ));
 
-    stackChildren.addAll(renderBoxes(size));
-
-    if (_busy) {
-      stackChildren.add(Center(
-        child: CircularProgressIndicator(),
-      ));
+    if (_busy == 1) {
+      // stackChildren.add(Center(
+      //   child: CircularProgressIndicator(),
+      // ));
+      stackChildren.addAll(renderBoxes(size));
     }
 
     return Scaffold(
@@ -131,39 +151,83 @@ class _HomeState extends State<Home> {
         mainAxisAlignment: MainAxisAlignment.end,
         children: <Widget>[
           FloatingActionButton(
-            heroTag: "Fltbtn2",
+            heroTag: "Detect in Image",
             child: Icon(Icons.camera_alt),
-            onPressed: getImageFromCamera,
+            onPressed: () {
+              setState(() {
+                _busy = 0;
+              });
+            },
           ),
           SizedBox(
             width: 10,
           ),
           FloatingActionButton(
-            heroTag: "Fltbtn1",
+            heroTag: "See Bounding Boxes",
             child: Icon(Icons.photo),
-            onPressed: getImageFromGallery,
+            onPressed: () {
+              _busy = 1;
+            },
           ),
         ],
       ),
-      body: Container(
-        alignment: Alignment.center,
-        child: Stack(
-          children: stackChildren,
-        ),
-      ),
+      body: (_busy == 0)
+          ? Container(
+              width: double.infinity,
+              height: double.infinity,
+              color: Colors.red,
+              child: ElevatedButton(
+                onPressed: getImageFromCamera,
+                child: Center(
+                  child: Text(
+                    "Detect in Image",
+                    style: TextStyle(
+                      fontSize: 45,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+            )
+          : (_busy == 1)
+              ? Container(
+                  alignment: Alignment.center,
+                  child: Stack(
+                    children: stackChildren,
+                  ),
+                )
+              : Container(
+                  color: Colors.blue,
+                  child: GestureDetector(
+                    child: Center(
+                      child: Text(
+                        "Listen or detect in  Image",
+                        style: TextStyle(
+                          fontSize: 45,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    onTap: listentoobjects,
+                    onDoubleTap: detectinimage,
+                  ),
+                ),
     );
   }
 
   // gets image from camera and runs detectObject
   Future getImageFromCamera() async {
     final pickedFile = await picker.getImage(source: ImageSource.camera);
-
     setState(() {
       if (pickedFile != null) {
         _image = File(pickedFile.path);
       } else {
         print("No image Selected");
       }
+    });
+    _tts.tts("Image is Selected");
+    setState(() {
+      _busy = 1;
     });
     detectObject(_image);
   }

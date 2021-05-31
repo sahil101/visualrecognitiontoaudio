@@ -1,5 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.visualrecogntiontoaudio"> <uses-permission android:name="android.permission.INTERNET" />
+    package="com.example.visualrecogntiontoaudio">
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
    <application
         android:label="visualrecogntiontoaudio"
         android:usesCleartextTraffic="true"
