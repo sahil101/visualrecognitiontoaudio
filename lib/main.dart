@@ -9,9 +9,16 @@ void main() {
   // WidgetsFlutterBinding.ensureInitialized();
   // cameras = await availableCameras();
   // running the app
-  runApp(MaterialApp(
-    home: MySplash(),
-    debugShowCheckedModeBanner: false,
-    theme: ThemeData.dark(),
-  ));
+  runApp(new MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: MySplash(),
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData.dark(),
+    );
+  }
 }

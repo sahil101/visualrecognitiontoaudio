@@ -28,11 +28,11 @@ class _HomeState extends State<Home> {
     setState(() {
       _busy = 0;
     });
-    _tts.tts("Click an image by Tapping on the screen");
+    _tts.tts(_instructions);
   }
 
   detectObject(File image) async {
-    Map<String, dynamic> results = await _callapi.getresults(image);
+    Map<String, dynamic> results = await _callapi.getresults(image, "object");
     FileImage(image)
         .resolve(ImageConfiguration())
         .addListener((ImageStreamListener((ImageInfo info, bool _) {
@@ -45,17 +45,14 @@ class _HomeState extends State<Home> {
       _recognitions = results;
       _busy = 2;
     });
-    print(_recognitions);
-    if (_recognitions.length > 0) {
-      texttospeak = "";
-      for (var i = 0; i < results.length; i++) {
-        String index = i.toString();
-        texttospeak = texttospeak +
-            "Object ${results[index]['label']} is at ${results[index]['height']} ${results[index]['width']} ";
-      }
+    texttospeak = "";
+    for (var i = 0; i < results.length; i++) {
+      String index = i.toString();
+      texttospeak = texttospeak +
+          "Object '${results[index]['label']}' is at '${results[index]['height']} ${results[index]['width']}' ";
     }
     _tts.tts(
-        "'Tap to Listen' and 'Double Tap to Again Click Image', If you tap Once then after Listening Choose again ");
+        "'Tap to Listen' and 'Double Tap to Again Click Image', If you tap Once then after Listening 'Choose again' ");
   }
 
   @override
@@ -64,7 +61,7 @@ class _HomeState extends State<Home> {
     _busy = 0;
     _tts = new TTS();
     _callapi = new CallApi();
-    _instructions = "Click an image by Tapping on the screen";
+    _instructions = " 'Tap Once to Click an image' and 'Tap Twice to go back'";
     _tts.tts(_instructions);
   }
 
@@ -93,7 +90,7 @@ class _HomeState extends State<Home> {
             width: width * factorX,
             height: height * factorY,
             child: ((double.parse(_recognitions[index]["confidence_score"]) >
-                    0.50))
+                    0.85))
                 ? Container(
                     decoration: BoxDecoration(
                         border: Border.all(
@@ -137,9 +134,6 @@ class _HomeState extends State<Home> {
     ));
 
     if (_busy == 1) {
-      // stackChildren.add(Center(
-      //   child: CircularProgressIndicator(),
-      // ));
       stackChildren.addAll(renderBoxes(size));
     }
 
@@ -166,7 +160,9 @@ class _HomeState extends State<Home> {
             heroTag: "See Bounding Boxes",
             child: Icon(Icons.photo),
             onPressed: () {
-              _busy = 1;
+              setState(() {
+                _busy = 1;
+              });
             },
           ),
         ],
@@ -176,8 +172,7 @@ class _HomeState extends State<Home> {
               width: double.infinity,
               height: double.infinity,
               color: Colors.red,
-              child: ElevatedButton(
-                onPressed: getImageFromCamera,
+              child: GestureDetector(
                 child: Center(
                   child: Text(
                     "Detect in Image",
@@ -187,6 +182,10 @@ class _HomeState extends State<Home> {
                     ),
                   ),
                 ),
+                onTap: getImageFromCamera,
+                onDoubleTap: () {
+                  Navigator.pop(context);
+                },
               ),
             )
           : (_busy == 1)
@@ -197,7 +196,7 @@ class _HomeState extends State<Home> {
                   ),
                 )
               : Container(
-                  color: Colors.blue,
+                  color: Colors.green,
                   child: GestureDetector(
                     child: Center(
                       child: Text(
